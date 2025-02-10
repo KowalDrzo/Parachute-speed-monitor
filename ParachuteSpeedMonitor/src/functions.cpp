@@ -1,11 +1,8 @@
 #include "functions.h"
 
 Adafruit_BMP085 bmp;
+float initialPressure = 0;
 File file;
-AsyncWebServer server(80);
-
-const char* ssid = "PMonitor";
-const char* password = "12345678";
 
 float getPressure() {
 
@@ -23,12 +20,20 @@ void initFs() {
     LittleFS.begin(true);
 }
 
+float countAltitude(float pressure) {
+
+    if (initialPressure < 10) return 0;
+
+    float alt = (2+273.15)/0.0065*(1.0 - pow(pressure/initialPressure, 0.1903));
+    return alt;
+}
+
 void appendPressureFile(float pressure) {
 
     file = LittleFS.open("/FlightData.apg", "a");
 
-    char tempDataAscii[10];
-    sprintf(tempDataAscii, "%%f\n", pressure);
+    char tempDataAscii[200];
+    sprintf(tempDataAscii, "%d;%0.1f;%0.1f\n", millis(), pressure, countAltitude(pressure));
     file.write((uint8_t*) tempDataAscii, strlen(tempDataAscii));
 
     file.close();
@@ -38,43 +43,17 @@ void clearPressureFile() {
 
     file = LittleFS.open("/FlightData.apg", "w");
     file.close();
+    Serial.println("CLEARED");
 }
 
-void serverEnable() {
+void readPressureFile() {
 
-    digitalWrite(LED_PIN, 0);
-    WiFi.softAP(ssid, password);
+    file = LittleFS.open("/FlightData.apg", "r");
 
-    Serial.println(WiFi.softAPIP());
-    MDNS.begin("speedmonitor");
+    while (file.available()) {
+        String fileContent = file.readString();
+        Serial.print(fileContent);
+    }
 
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-
-        String html = "<html><body>"
-                      "<h1>Parachute Speed Monitor</h1>"
-                      "<p>Free space: " + String((LittleFS.totalBytes() - LittleFS.usedBytes()) / 1024) + " kB</p>"
-                      "<button onclick=\"window.location='/download'\">Download data</button>"
-                      "<button onclick=\"if(confirm('Are you sure to delete file?')) fetch('/delete', {method: 'DELETE'}).then(() => alert('Deleted'))\">Remove data</button>"
-                      "</body></html>";
-        request->send(200, "text/html", html);
-    });
-
-    server.on("/download", HTTP_GET, [](AsyncWebServerRequest *request){
-
-        if (LittleFS.exists("/FlightData.apg")) {
-            request->send(LittleFS, "/FlightData.apg", "text/plain");
-        } else {
-            request->send(404, "text/plain", "File not found");
-        }
-    });
-
-    server.on("/delete", HTTP_DELETE, [](AsyncWebServerRequest *request){
-
-        clearPressureFile();
-        request->send(204, "text/plain", "File deleted");
-    });
-
-    server.begin();
-
-    while (1) vTaskDelay(1 / portTICK_PERIOD_MS);
+    file.close();
 }

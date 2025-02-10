@@ -6,18 +6,16 @@
 #include <SPI.h>
 #include <Adafruit_BMP085.h>
 #include <LittleFS.h>
-#include <WiFi.h>
-#include "ESPAsyncWebServer.h"
-#include <ESPmDNS.h>
 
 #include "pinout.h"
 
 extern Adafruit_BMP085 bmp;
+extern float initialPressure;
 
 float getPressure();
 void initFs();
 void appendPressureFile(float pressure);
 void clearPressureFile();
-void serverEnable();
+void readPressureFile();
 
 #endif

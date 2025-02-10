@@ -22,9 +22,9 @@ void setup() {
 void loop() {
 
     if (millis() - timer >= 500) {
-        
         timer = millis();
         float pressure = getPressure();
+        if (initialPressure < 10) initialPressure = pressure;
         Serial.println(pressure);
 
         digitalWrite(LED_PIN, 0);
@@ -33,11 +33,15 @@ void loop() {
     }
 
     if (!digitalRead(BUTTON_PIN)) {
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-        if (!digitalRead(BUTTON_PIN)) {
-            serverEnable();
+        int8_t i;
+        for (i = 0; i < 10; i++) {
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+            if (digitalRead(BUTTON_PIN)) break;
         }
+
+        if (i < 9) readPressureFile();
+        else clearPressureFile();
     }
 
-    vTaskDelay(1 / portTICK_PERIOD_MS);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 }
