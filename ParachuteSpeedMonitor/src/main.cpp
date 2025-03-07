@@ -6,6 +6,9 @@ void setup() {
 
     Serial.begin(115200);
 
+    pinMode(GND_PIN, OUTPUT);
+    vTaskDelay(200 / portTICK_PERIOD_MS);
+
     Wire.begin(SDA_PIN, SCL_PIN);
     bmp.begin(BMP085_ULTRAHIGHRES, &Wire);
 
@@ -21,7 +24,7 @@ void setup() {
 
 void loop() {
 
-    if (millis() - timer >= 500) {
+    if (millis() - timer >= 200) {
         timer = millis();
         float pressure = getPressure();
         if (initialPressure < 10) initialPressure = pressure;
