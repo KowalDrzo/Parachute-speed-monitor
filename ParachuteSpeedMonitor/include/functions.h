@@ -5,7 +5,8 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_BMP085.h>
-#include <LittleFS.h>
+#include <FS.h>
+#include <SPIFFS.h>
 
 #include "pinout.h"
 

@@ -17,7 +17,7 @@ float getPressure() {
 }
 
 void initFs() {
-    LittleFS.begin(true);
+    SPIFFS.begin(true);
 }
 
 float countAltitude(float pressure) {
@@ -30,7 +30,7 @@ float countAltitude(float pressure) {
 
 void appendPressureFile(float pressure) {
 
-    file = LittleFS.open("/FlightData.apg", "a");
+    file = SPIFFS.open("/FlightData.apg", "a");
 
     char tempDataAscii[200];
     sprintf(tempDataAscii, "%d;%0.1f;%0.1f\n", millis(), pressure, countAltitude(pressure));
@@ -41,14 +41,14 @@ void appendPressureFile(float pressure) {
 
 void clearPressureFile() {
 
-    file = LittleFS.open("/FlightData.apg", "w");
+    file = SPIFFS.open("/FlightData.apg", "w");
     file.close();
     Serial.println("CLEARED");
 }
 
 void readPressureFile() {
 
-    file = LittleFS.open("/FlightData.apg", "r");
+    file = SPIFFS.open("/FlightData.apg", "r");
 
     while (file.available()) {
         String fileContent = file.readString();
