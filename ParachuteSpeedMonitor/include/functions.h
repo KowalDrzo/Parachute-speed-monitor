@@ -12,6 +12,7 @@
 
 extern Adafruit_BMP085 bmp;
 extern float initialPressure;
+extern float initialTemperature;
 
 float getPressure();
 void initFs();

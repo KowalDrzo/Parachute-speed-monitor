@@ -9,8 +9,8 @@ void setup() {
     pinMode(GND_PIN, OUTPUT);
     vTaskDelay(200 / portTICK_PERIOD_MS);
 
-    Wire.begin(SDA_PIN, SCL_PIN);
-    bmp.begin(BMP085_ULTRAHIGHRES, &Wire);
+    Wire.begin(SDA_PIN, SCL_PIN, 50000);
+    Serial.println(bmp.begin(BMP085_ULTRAHIGHRES, &Wire));
 
     vTaskDelay(200 / portTICK_PERIOD_MS);
 
@@ -25,14 +25,25 @@ void setup() {
 void loop() {
 
     if (millis() - timer >= 200) {
+
         timer = millis();
+        while (initialTemperature < -50) {
+            float temperature = bmp.readTemperature();
+            if (temperature > -50 && temperature < 100) {
+                initialTemperature = temperature;
+            }
+            Serial.println(initialTemperature);
+        }
+
         float pressure = getPressure();
         if (initialPressure < 10) initialPressure = pressure;
         Serial.println(pressure);
 
-        digitalWrite(LED_PIN, 0);
-        appendPressureFile(pressure);
-        digitalWrite(LED_PIN, 1);
+        if (pressure > 300 && pressure < 120000) {
+            digitalWrite(LED_PIN, 0);
+            appendPressureFile(pressure);
+            digitalWrite(LED_PIN, 1);
+        }
     }
 
     if (!digitalRead(BUTTON_PIN)) {
@@ -46,5 +57,5 @@ void loop() {
         else clearPressureFile();
     }
 
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 }

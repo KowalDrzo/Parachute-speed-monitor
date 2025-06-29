@@ -2,6 +2,7 @@
 
 Adafruit_BMP085 bmp;
 float initialPressure = 0;
+float initialTemperature = -100;
 File file;
 
 float getPressure() {
@@ -20,12 +21,16 @@ void initFs() {
     SPIFFS.begin(true);
 }
 
+float savedAlt = 0;
+
 float countAltitude(float pressure) {
 
     if (initialPressure < 10) return 0;
 
-    float alt = (2+273.15)/0.0065*(1.0 - pow(pressure/initialPressure, 0.1903));
-    return alt;
+    float alt = (initialTemperature+273.15)/0.0065*(1.0 - pow(pressure/initialPressure, 0.1903));
+    float newAlt = savedAlt * 0.2 + alt * 0.8;
+    savedAlt = newAlt;
+    return newAlt;
 }
 
 void appendPressureFile(float pressure) {
